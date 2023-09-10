@@ -6,8 +6,7 @@
   "scripts": {
     "start": "node --watch index.js",
     "test": "jest --coverage",
-    "lint": "eslint . -c .eslintrc.yml",
-    "deps-check": "npm audit"
+    "lint": "eslint . -c .eslintrc.yml"
   },
   "author": "",
   "license": "ISC",
@@ -30,6 +29,12 @@
     "testTimeout": 2000,
     "setupFilesAfterEnv": [
       "./jest.setup.js"
+    ],
+    "coverageReporters": [
+      "html",
+      "text",
+      "text-summary",
+      "cobertura"
     ]
   }
 }
