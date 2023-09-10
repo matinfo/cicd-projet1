@@ -4,6 +4,10 @@ const cookieParser = require('cookie-parser');
 const port = process.env.PORT || '3000';
 const router = require('./routes');
 
+console.info(
+  `🚀 Server running on port ${port} and env is ${process.env.NODE_ENV} 🚀`
+);
+
 require('./database');
 
 const app = express();
