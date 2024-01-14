@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const { MongoMemoryServer } = require("mongodb-memory-server");
 
 if (process.env.NODE_ENV === "production") {
   mongoose
@@ -10,7 +11,6 @@ if (process.env.NODE_ENV === "production") {
     })
     .catch((e) => console.log(e));
 } else {
-  const { MongoMemoryServer } = require("mongodb-memory-server");
   MongoMemoryServer.create().then(async (mongo) => {
     const uri = mongo.getUri();
     await mongoose.connect(uri);
