@@ -60,7 +60,7 @@ jobs:
           username: ${{ secrets.SSH_USERNAME }}
           passphrase: ${{ secrets.SSH_PASSPHRASE }}
           port: ${{ secrets.SSH_PORT }}
-          key: ${{ secrets.SSH_KEY }}
+          key: ${{ secrets.SSH_KEY_RSA }}
           source: server/*
           target: ~/www/server
       - name: déployer sur le serveur # Étape de déploiement
@@ -70,7 +70,7 @@ jobs:
           username: ${{ secrets.SSH_USERNAME }}
           passphrase: ${{ secrets.SSH_PASSPHRASE }}
           port: ${{ secrets.SSH_PORT }}
-          key: ${{ secrets.SSH_KEY }}
+          key: ${{ secrets.SSH_KEY_RSA }}
           script: | # Commandes shell à exécuter: Installe les dépendances sur le serveur + démarre ou redémarre le service avec pm2
             cd ~/www/server && npm install --omit=dev
             cd ~/www/server && pm2 startOrRestart ecosystem.config.js --env production && pm2 save
