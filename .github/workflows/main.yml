@@ -62,6 +62,7 @@ jobs:
           port: ${{ secrets.SSH_PORT }}
           source: server/*
           target: ~/www/server
+          timeout: 120s
       - name: déployer sur le serveur # Étape de déploiement
         uses: appleboy/ssh-action@v1.1.0
         with:
