@@ -54,10 +54,16 @@ jobs:
       - name: checkout le code # Récupère le code source
         uses: actions/checkout@v4 # Utilise l'action de checkout
       - name: copie le code sur le serveur
-        run: |
-          scp -P${{ secrets.SSH_PORT }} -r ./server ${{ secrets.SSH_USERNAME }}@${{ secrets.HOST_IP }}:~/www
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          port: ${{ secrets.SSH_PORT }}
+          key: ${{ secrets.SSH_KEY }}
+          source: server/*
+          target: ~/www/server
       - name: déployer sur le serveur # Étape de déploiement
-        uses: appleboy/ssh-action@master
+        uses: appleboy/ssh-action@v1.1.0
         with:
           host: ${{ secrets.HOST_IP }}
           username: ${{ secrets.SSH_USERNAME }}
