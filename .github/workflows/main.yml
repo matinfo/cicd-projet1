@@ -1,12 +1,6 @@
 # Nom du workflow de CI/CD
 name: CI/CD workflow
 
-# Variables d'environnement globales utilisées dans le workflow
-env:
-  SERVER_USER: 'bob_mmn-ubuntu-docker' # Utilisateur du serveur
-  SERVER_IP: '62.2.127.4' # Adresse IP or host du serveur
-  SERVER_SSH_PORT: 1322 # Port SSH du serveur
-
 # Paramètres pour gérer la concurrence des jobs
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }} # Groupe de concurrence basé sur le nom du workflow et la référence git
@@ -59,13 +53,16 @@ jobs:
     steps:
       - name: checkout le code # Récupère le code source
         uses: actions/checkout@v4 # Utilise l'action de checkout
-
+      - name: copie le code sur le serveur
+        run: |
+          scp -P${{ secrets.SSH_PORT }} -r ./server ${{ secrets.SSH_USERNAME }}@${{ secrets.HOST_IP }}:~/www
       - name: déployer sur le serveur # Étape de déploiement
-        run: | # Commandes shell à exécuter
-          eval $(ssh-agent -s)  # Initialise l'agent SSH
-          ssh-add - <<< "${{ secrets.SSH_KEY_BOB }}"  # Ajoute la clé SSH privée
-          mkdir -p ~/.ssh  # Crée le dossier .ssh si nécessaire
-          ssh-keyscan -H $SERVER_IP >> ~/.ssh/known_hosts  # Ajoute le serveur aux hôtes connus
-          scp -P$SERVER_SSH_PORT -r ./server $SERVER_USER@$SERVER_IP:~/www  # Copie le code sur le serveur
-          ssh $SERVER_USER@$SERVER_IP -p$SERVER_SSH_PORT "cd ~/www/server && npm install --omit=dev"  # Installe les dépendances sur le serveur
-          ssh $SERVER_USER@$SERVER_IP -p$SERVER_SSH_PORT "cd ~/www/server && pm2 startOrRestart ecosystem.config.js --env production && pm2 save"  # Démarre ou redémarre le service avec pm2
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.HOST_IP }}
+          username: ${{ secrets.SSH_USERNAME }}
+          port: ${{ secrets.SSH_PORT }}
+          key: ${{ secrets.SSH_KEY }}
+          script: | # Commandes shell à exécuter: Installe les dépendances sur le serveur + démarre ou redémarre le service avec pm2
+            cd ~/www/server && npm install --omit=dev
+            cd ~/www/server && pm2 startOrRestart ecosystem.config.js --env production && pm2 save
