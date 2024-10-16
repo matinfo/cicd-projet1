@@ -44,6 +44,11 @@ jobs:
       - name: exécute les tests  # Exécute les tests
         run: |  # Commandes shell à exécuter
           npm ${{ matrix.npm_command }}  # Exécute la commande npm définie dans la matrice
+      
+      - name: Upload du rapport de couverture sur Codecov
+        uses: codecov/codecov-action@v4
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
   # Job pour le déploiement
   deploy:
