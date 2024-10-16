@@ -113,7 +113,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: frontend-dist  # nom de l'artéfact
-          path: ./dist  # chemin de l'artéfact
+          path: client/dist/  # chemin de l'artéfact
           retention-days: 1  # durée de rétention de l'artéfact
 
   # Job pour le déploiement
