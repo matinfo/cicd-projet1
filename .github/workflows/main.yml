@@ -46,7 +46,7 @@ jobs:
           npm ${{ matrix.npm_command }}  # Exécute la commande npm définie dans la matrice
       
       - name: upload of coverage report to Codecov
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v4
         with:
           fail_ci_if_error: true
         env:
@@ -196,7 +196,7 @@ jobs:
 
       - name: upload of coverage report to Codecov
         if : matrix.browser == 'chrome' # pour ne pas uploader 3 fois le rapport
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v4
         with:
           fail_ci_if_error: true
         env:
