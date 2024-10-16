@@ -119,27 +119,27 @@ jobs:
     runs-on: ubuntu-latest # Exécute sur la dernière version d'Ubuntu
 
     steps:
-      - name: checkout le code # Récupère le code source
+      - name: code checkout # Récupère le code source
         uses: actions/checkout@v4 # Utilise l'action de checkout
 
-      - name: télécharger l'artéfact du frontend  # télécharge l'artéfact archivé précédemment
+      - name: download frontend artifact # télécharge l'artéfact archivé précédemment
         uses: actions/download-artifact@v3
         with:
           name: frontend-dist  # nom de l'artéfact
-          path: ./dist  # chemin où l'artéfact sera téléchargé
+          path: client/dist  # chemin où l'artéfact sera téléchargé
 
-      - name: copie le code sur le serveur
-        uses: appleboy/scp-action@v0.1.7 # Utilise scp-action pour copier les fichiers du backend sur le serveur
+      - name: copy backend and build frontend to server
+        uses: appleboy/scp-action@v0.1.7 # Utilise scp-action
         with:
           host: ${{ secrets.HOST_IP }}
           username: ${{ secrets.SSH_USERNAME }}
           password: ${{ secrets.SSH_PASSWORD }}
           port: ${{ secrets.SSH_PORT }}
-          source: 'server/*, dist/*'
+          source: 'server/*, dist/*' # copier les fichiers du backend et du frontend sur le serveur
           target: ~/www
           timeout: 120s
 
-      - name: déployer sur le serveur # Étape de déploiement
+      - name: server deployment - install deps and run # Étape de déploiement
         uses: appleboy/ssh-action@v1.1.0 # Utilise ssh-action pour exécuter des commandes sur le serveur
         with:
           host: ${{ secrets.HOST_IP }}
