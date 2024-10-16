@@ -96,7 +96,7 @@ jobs:
         uses: actions/checkout@v4
   
       - name: Node.js install  # installe Node.js
-        uses: actions/setup-node@v3  # utilise l'action setup-node en version 3
+        uses: actions/setup-node@v4  # utilise l'action setup-node en version 4
         with:
           cache: 'npm'
           cache-dependency-path: client/package-lock.json  # chemin vers le package-lock.json pour le cache
@@ -109,7 +109,7 @@ jobs:
         run: |
           npm run build
   
-      - name: archiver les artefacts  # archive le dossier 'dist' pour une utilisation ultérieure
+      - name: create frontend artifacts  # archive le dossier 'dist' pour une utilisation ultérieure
         uses: actions/upload-artifact@v4
         with:
           name: frontend-dist  # nom de l'artéfact
@@ -127,7 +127,7 @@ jobs:
         uses: actions/checkout@v4 # Utilise l'action de checkout
 
       - name: download frontend artifact # télécharge l'artéfact archivé précédemment
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: frontend-dist  # nom de l'artéfact
           path: ./dist  # chemin où l'artéfact sera téléchargé
