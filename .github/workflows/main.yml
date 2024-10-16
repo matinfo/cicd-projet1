@@ -16,6 +16,8 @@ on:
 jobs:
   # Job pour les tests du backend
   test_backend:
+    runs-on: ubuntu-latest  # Système d'exploitation sur lequel le job s'exécutera
+    
     defaults:  # Options par défaut pour le job
       run:  # Options par défaut pour les étapes
         working-directory: server  # Dossier de travail pour les étapes
@@ -24,8 +26,6 @@ jobs:
       fail-fast: true  # Arrête tous les jobs si l'un d'entre eux échoue
       matrix:  # Définit une matrice pour exécuter des jobs en parallèle
         npm_command: ['run test:ci', 'run lint', 'audit']  # Différentes commandes npm à exécuter
-
-    runs-on: ubuntu-latest  # Système d'exploitation sur lequel le job s'exécutera
 
     steps:  # Liste des étapes à exécuter
       - name: code checkout  # Récupère le code source
@@ -54,6 +54,8 @@ jobs:
 
   # Job pour les tests du frontend
   check_frontend:
+    runs-on: ubuntu-latest  # Système d'exploitation sur lequel le job s'exécutera
+
     defaults:  # Options par défaut pour le job
       run:  # Options par défaut pour les étapes
         working-directory: client  # Dossier de travail pour les étapes
@@ -62,8 +64,6 @@ jobs:
       fail-fast: true  # Arrête tous les jobs si l'un d'entre eux échoue
       matrix:  # Définit une matrice pour exécuter des jobs en parallèle
         npm_command: ['run lint', 'audit']  # Différentes commandes npm à exécuter
-
-    runs-on: ubuntu-latest  # Système d'exploitation sur lequel le job s'exécutera
 
     steps:  # Liste des étapes à exécuter
       - name: code checkout  # Récupère le code source
@@ -84,14 +84,12 @@ jobs:
           npm ${{ matrix.npm_command }}  # Exécute la commande npm définie dans la matrice
 
   build_frontend:  # job pour construire le frontend
-
+    needs: [check_frontend]  # dépend du job check_frontend
     runs-on: ubuntu-latest  # environnement d'exécution
 
     defaults:  # définition des valeurs par défaut pour les étapes
       run:  # définition des valeurs par défaut pour les étapes run
         working-directory: client  # définit le dossier de travail par défaut pour les étapes run
-
-    needs: [check_frontend]  # dépend du job check_frontend
 
     steps:  # les étapes du job
       - name: code checkout  # récupère le code source
@@ -119,14 +117,12 @@ jobs:
           retention-days: 1  # durée de rétention de l'artéfact
 
   build_e2e_frontend:  # job pour construire le frontend
-
+    needs: [check_frontend]  # dépend du job check_frontend
     runs-on: ubuntu-latest  # environnement d'exécution
 
     defaults:  # définition des valeurs par défaut pour les étapes
       run:  # définition des valeurs par défaut pour les étapes run
         working-directory: client  # définit le dossier de travail par défaut pour les étapes run
-
-    needs: [check_frontend]  # dépend du job check_frontend
 
     steps:  # les étapes du job
       - name: code checkout  # récupère le code source
