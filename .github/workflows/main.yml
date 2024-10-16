@@ -73,7 +73,7 @@ jobs:
         uses: actions/setup-node@v4  # Utilise l'action GitHub pour installer Node.js
         with:  # Options supplémentaires pour l'étape
           cache: 'npm'  # Active le cache npm
-          cache-dependency-path: server/package-lock.json  # Chemin du fichier package-lock.json
+          cache-dependency-path: client/package-lock.json  # Chemin du fichier package-lock.json
 
       - name: deps install  # Installe les dépendances du projet
         run: |  # Commandes shell à exécuter
