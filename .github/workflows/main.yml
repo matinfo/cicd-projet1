@@ -16,45 +16,47 @@ on:
 jobs:
   # Job pour les tests
   tests:
-    runs-on: ubuntu-latest # Exécute sur la dernière version d'Ubuntu
-    defaults: # Options par défaut pour les étapes
-      run:
-        working-directory: server # Dossier de travail par défaut
-    steps:
-      - name: checkout le code # Récupère le code source
-        uses: actions/checkout@v4 # Utilise l'action de checkout
+    defaults:  # Options par défaut pour le job
+      run:  # Options par défaut pour les étapes
+        working-directory: server  # Dossier de travail pour les étapes
 
-      - name: installer Node.js # Installe Node.js
-        uses: actions/setup-node@v4 # Utilise l'action setup-node
-        with: # Options supplémentaires
-          cache: 'npm' # Met en cache les dépendances npm
-          cache-dependency-path: server/package-lock.json # Chemin du fichier package-lock.json
+    strategy:  # Stratégie pour l'exécution du job
+      fail-fast: true  # Arrête tous les jobs si l'un d'entre eux échoue
+      matrix:  # Définit une matrice pour exécuter des jobs en parallèle
+        npm_command: ['run test:ci', 'run lint', 'audit']  # Différentes commandes npm à exécuter
 
-      - name: installer les dépendances # Installe les dépendances npm
-        run: | # Commandes shell à exécuter
-          npm ci  # Installe les dépendances en mode "clean install"
+    runs-on: ubuntu-latest  # Système d'exploitation sur lequel le job s'exécutera
 
-      - name: exécute les tests # Exécute les tests
-        run: |
-          npm run test:ci  # Exécute le script de test
+    steps:  # Liste des étapes à exécuter
+      - name: checkout le code  # Récupère le code source
+        uses: actions/checkout@v4  # Utilise l'action GitHub pour faire le checkout du code
 
-      - name: vérifie le code # Exécute le linter sur le code
-        run: |
-          npm run lint  # Exécute le script de lint
+      - name: installer Node.js  # Installe Node.js
+        uses: actions/setup-node@v4  # Utilise l'action GitHub pour installer Node.js
+        with:  # Options supplémentaires pour l'étape
+          cache: 'npm'  # Active le cache npm
+          cache-dependency-path: server/package-lock.json  # Chemin du fichier package-lock.json
 
-      - name: vérifie les vulnérabilités # Vérifie les vulnérabilités des dépendances
-        run: |
-          npm audit  # Utilise npm audit pour identifier les vulnérabilités
+      - name: installer les dépendances  # Installe les dépendances du projet
+        run: |  # Commandes shell à exécuter
+          npm ci  # Exécute la commande npm ci
+
+      - name: exécute les tests  # Exécute les tests
+        run: |  # Commandes shell à exécuter
+          npm ${{ matrix.npm_command }}  # Exécute la commande npm définie dans la matrice
 
   # Job pour le déploiement
   deploy:
     needs: tests # Dépend du job "tests"
+    
     runs-on: ubuntu-latest # Exécute sur la dernière version d'Ubuntu
+
     steps:
       - name: checkout le code # Récupère le code source
         uses: actions/checkout@v4 # Utilise l'action de checkout
+
       - name: copie le code sur le serveur
-        uses: appleboy/scp-action@v0.1.7
+        uses: appleboy/scp-action@v0.1.7 # Utilise scp-action pour copier les fichiers du backend sur le serveur
         with:
           host: ${{ secrets.HOST_IP }}
           username: ${{ secrets.SSH_USERNAME }}
@@ -63,13 +65,14 @@ jobs:
           source: server/*
           target: ~/www
           timeout: 120s
+
       - name: déployer sur le serveur # Étape de déploiement
-        uses: appleboy/ssh-action@v1.1.0
+        uses: appleboy/ssh-action@v1.1.0 # Utilise ssh-action pour exécuter des commandes sur le serveur
         with:
           host: ${{ secrets.HOST_IP }}
           username: ${{ secrets.SSH_USERNAME }}
           password: ${{ secrets.SSH_PASSWORD }}
           port: ${{ secrets.SSH_PORT }}
-          script: | # Commandes shell à exécuter: Installe les dépendances sur le serveur + démarre ou redémarre le service avec pm2
-            cd ~/www/server && npm install --omit=dev
-            cd ~/www/server && pm2 startOrRestart ecosystem.config.js --env production && pm2 save
+          script: | # Commandes shell à exécuter:
+            cd ~/www/server && npm install --omit=dev # Installe les dépendances sur le serveur
+            cd ~/www/server && pm2 startOrRestart ecosystem.config.js --env production && pm2 save # Démarre ou redémarre le service avec pm2
