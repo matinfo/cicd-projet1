@@ -116,20 +116,53 @@ jobs:
           path: client/dist/  # chemin de l'artéfact
           retention-days: 1  # durée de rétention de l'artéfact
 
+  build_e2e_frontend:  # job pour construire le frontend
+
+    runs-on: ubuntu-latest  # environnement d'exécution
+
+    defaults:  # définition des valeurs par défaut pour les étapes
+      run:  # définition des valeurs par défaut pour les étapes run
+        working-directory: client  # définit le dossier de travail par défaut pour les étapes run
+
+    needs: [check_frontend]  # dépend du job check_frontend
+
+    steps:  # les étapes du job
+      - name: code checkout  # récupère le code source
+        uses: actions/checkout@v4
+
+      - name: Node.js install  # installe Node.js
+        uses: actions/setup-node@v4  # utilise l'action setup-node en version 4
+        with:
+          cache: 'npm'
+          cache-dependency-path: client/package-lock.json  # chemin vers le package-lock.json pour le cache
+
+      - name: deps install  # installe les dépendances npm
+        run: |
+          npm ci --prefer-offline
+
+      - name: frontend build  # construit le frontend
+        run: |
+          npm run build:e2e
+
+      - name: create frontend artifacts  # archive le dossier 'dist' pour une utilisation ultérieure
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-dist-e2e  # nom de l'artéfact
+          path: ./client/dist  # chemin de l'artéfact
+          retention-days: 1  # durée de rétention de l'artéfact
+
   test_e2e:
     runs-on: ubuntu-latest
 
-    needs: [test_backend, build_frontend]
+    needs: [test_backend, build_e2e_frontend]
+    
+    strategy:
+      matrix:
+        browser: ["chrome", "firefox", "edge"]
 
     steps:
       - name: code checkout
         uses: actions/checkout@v4
-  
-      - name: download frontend artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: frontend-dist
-          path: client/dist/
   
       - name: install Node.js
         uses: actions/setup-node@v4
@@ -137,11 +170,11 @@ jobs:
           cache: 'npm'
           cache-dependency-path: server/package-lock.json
   
-      - name: install deps frontend
-        run: cd client && npm ci --prefer-offline
-      
-      - name: build frontend for e2e
-        run: cd client && npm run build:e2e
+      - name: download frontend artifact e2e
+        uses: actions/download-artifact@v4
+        with:
+          name: frontend-dist-e2e
+          path: ./client/dist
     
       - name: install deps backend
         run: cd server && npm ci --prefer-offline
@@ -153,13 +186,14 @@ jobs:
         uses: cypress-io/github-action@v6
         with:
           working-directory: client
-          browser: chrome
+          browser: ${{ matrix.browser }}
           start: npm run preview
           wait-on: http://localhost:4173
           wait-on-timeout: 60
           config: baseUrl=http://localhost:4173 
 
       - name: upload of coverage report to Codecov
+        if : matrix.browser == 'chrome' # pour ne pas uploader 3 fois le rapport
         uses: codecov/codecov-action@v4
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
