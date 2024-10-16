@@ -168,10 +168,6 @@ jobs:
   build_frontend:  # job pour construire le frontend
     needs: [check_frontend]  # dépend du job check_frontend
     runs-on: ubuntu-latest  # environnement d'exécution
-    if: |
-      always() &&
-      needs.test_e2e.result == 'success'
-
     defaults:  # définition des valeurs par défaut pour les étapes
       run:  # définition des valeurs par défaut pour les étapes run
         working-directory: client  # définit le dossier de travail par défaut pour les étapes run
