@@ -200,7 +200,7 @@ jobs:
 
   # Job pour le déploiement
   deploy:
-    needs: [test_e2e]  # Dépend du job "test_e2e"
+    needs: [test_e2e, build_frontend]  # Dépend du job "test_e2e" et "build_frontend"
     
     runs-on: ubuntu-latest # Exécute sur la dernière version d'Ubuntu
 
