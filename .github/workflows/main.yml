@@ -17,7 +17,7 @@ jobs:
   # Job pour les tests du backend
   test_backend:
     runs-on: ubuntu-latest  # Système d'exploitation sur lequel le job s'exécutera
-    
+
     defaults:  # Options par défaut pour le job
       run:  # Options par défaut pour les étapes
         working-directory: server  # Dossier de travail pour les étapes
@@ -201,7 +201,7 @@ jobs:
   # Job pour le déploiement
   deploy:
     needs: [test_e2e, build_frontend]  # Dépend du job "test_e2e" et "build_frontend"
-    
+    if: ${{ always() && contains(join(needs.*.result, ','), 'success') }}
     runs-on: ubuntu-latest # Exécute sur la dernière version d'Ubuntu
 
     steps:
