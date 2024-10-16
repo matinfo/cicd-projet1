@@ -47,8 +47,8 @@ jobs:
       
       - name: upload of coverage report to Codecov
         uses: codecov/codecov-action@v4
-        with:
-          fail_ci_if_error: true
+        # with:
+        #   fail_ci_if_error: true
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
@@ -197,8 +197,8 @@ jobs:
       - name: upload of coverage report to Codecov
         if : matrix.browser == 'chrome' # pour ne pas uploader 3 fois le rapport
         uses: codecov/codecov-action@v4
-        with:
-          fail_ci_if_error: true
+        # with:
+        #   fail_ci_if_error: true
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
