@@ -28,24 +28,24 @@ jobs:
     runs-on: ubuntu-latest  # Système d'exploitation sur lequel le job s'exécutera
 
     steps:  # Liste des étapes à exécuter
-      - name: checkout le code  # Récupère le code source
+      - name: code checkout  # Récupère le code source
         uses: actions/checkout@v4  # Utilise l'action GitHub pour faire le checkout du code
 
-      - name: installer Node.js  # Installe Node.js
+      - name: Node.js install  # Installe Node.js
         uses: actions/setup-node@v4  # Utilise l'action GitHub pour installer Node.js
         with:  # Options supplémentaires pour l'étape
           cache: 'npm'  # Active le cache npm
           cache-dependency-path: server/package-lock.json  # Chemin du fichier package-lock.json
 
-      - name: installer les dépendances  # Installe les dépendances du projet
+      - name: deps install # Installe les dépendances du projet
         run: |  # Commandes shell à exécuter
           npm ci --prefer-offline # Exécute la commande npm ci
 
-      - name: exécute les tests  # Exécute les tests
+      - name: tests, lint and audit run  # Exécute les tests
         run: |  # Commandes shell à exécuter
           npm ${{ matrix.npm_command }}  # Exécute la commande npm définie dans la matrice
       
-      - name: Upload of coverage report Codecov
+      - name: upload of coverage report of Codecov
         uses: codecov/codecov-action@v4
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
@@ -64,44 +64,48 @@ jobs:
     runs-on: ubuntu-latest  # Système d'exploitation sur lequel le job s'exécutera
 
     steps:  # Liste des étapes à exécuter
-      - name: checkout le code  # Récupère le code source
+      - name: code checkout  # Récupère le code source
         uses: actions/checkout@v4  # Utilise l'action GitHub pour faire le checkout du code
 
-      - name: installer Node.js  # Installe Node.js
+      - name: Node.js install  # Installe Node.js
         uses: actions/setup-node@v4  # Utilise l'action GitHub pour installer Node.js
         with:  # Options supplémentaires pour l'étape
           cache: 'npm'  # Active le cache npm
           cache-dependency-path: server/package-lock.json  # Chemin du fichier package-lock.json
 
-      - name: installer les dépendances  # Installe les dépendances du projet
+      - name: deps install  # Installe les dépendances du projet
         run: |  # Commandes shell à exécuter
           npm ci --prefer-offline # Exécute la commande npm ci
 
-      - name: exécute les tests  # Exécute les tests
+      - name: lint and audit run  # Exécute les tests
         run: |  # Commandes shell à exécuter
           npm ${{ matrix.npm_command }}  # Exécute la commande npm définie dans la matrice
 
   build_frontend:  # job pour construire le frontend
+
     runs-on: ubuntu-latest  # environnement d'exécution
+
     defaults:  # définition des valeurs par défaut pour les étapes
       run:  # définition des valeurs par défaut pour les étapes run
         working-directory: client  # définit le dossier de travail par défaut pour les étapes run
+
     needs: [check_frontend]  # dépend du job check_frontend
+
     steps:  # les étapes du job
-      - name: checkout le code  # récupère le code source
+      - name: code checkout  # récupère le code source
         uses: actions/checkout@v4
   
-      - name: installer Node.js  # installe Node.js
+      - name: Node.js install  # installe Node.js
         uses: actions/setup-node@v3  # utilise l'action setup-node en version 3
         with:
           cache: 'npm'
           cache-dependency-path: client/package-lock.json  # chemin vers le package-lock.json pour le cache
   
-      - name: installer les dépendances  # installe les dépendances npm
+      - name: deps install  # installe les dépendances npm
         run: |
           npm ci --prefer-offline
   
-      - name: build le frontend  # construit le frontend
+      - name: frontend build  # construit le frontend
         run: |
           npm run build
   
@@ -109,7 +113,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: frontend-dist  # nom de l'artéfact
-          path: client/dist/  # chemin de l'artéfact
+          path: ./dist  # chemin de l'artéfact
           retention-days: 1  # durée de rétention de l'artéfact
 
   # Job pour le déploiement
@@ -126,7 +130,7 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: frontend-dist  # nom de l'artéfact
-          path: client/dist  # chemin où l'artéfact sera téléchargé
+          path: ./dist  # chemin où l'artéfact sera téléchargé
 
       - name: copy backend and build frontend to server
         uses: appleboy/scp-action@v0.1.7 # Utilise scp-action
