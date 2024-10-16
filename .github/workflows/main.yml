@@ -83,39 +83,6 @@ jobs:
         run: |  # Commandes shell à exécuter
           npm ${{ matrix.npm_command }}  # Exécute la commande npm définie dans la matrice
 
-  build_frontend:  # job pour construire le frontend
-    needs: [check_frontend]  # dépend du job check_frontend
-    runs-on: ubuntu-latest  # environnement d'exécution
-
-    defaults:  # définition des valeurs par défaut pour les étapes
-      run:  # définition des valeurs par défaut pour les étapes run
-        working-directory: client  # définit le dossier de travail par défaut pour les étapes run
-
-    steps:  # les étapes du job
-      - name: code checkout  # récupère le code source
-        uses: actions/checkout@v4
-  
-      - name: Node.js install  # installe Node.js
-        uses: actions/setup-node@v4  # utilise l'action setup-node en version 4
-        with:
-          cache: 'npm'
-          cache-dependency-path: client/package-lock.json  # chemin vers le package-lock.json pour le cache
-  
-      - name: deps install  # installe les dépendances npm
-        run: |
-          npm ci --prefer-offline
-  
-      - name: frontend build  # construit le frontend
-        run: |
-          npm run build
-  
-      - name: create frontend artifacts  # archive le dossier 'dist' pour une utilisation ultérieure
-        uses: actions/upload-artifact@v4
-        with:
-          name: frontend-dist  # nom de l'artéfact
-          path: client/dist/  # chemin de l'artéfact
-          retention-days: 1  # durée de rétention de l'artéfact
-
   build_e2e_frontend:  # job pour construire le frontend
     needs: [check_frontend]  # dépend du job check_frontend
     runs-on: ubuntu-latest  # environnement d'exécution
@@ -198,10 +165,43 @@ jobs:
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
+  build_frontend:  # job pour construire le frontend
+    needs: [check_frontend]  # dépend du job check_frontend
+    runs-on: ubuntu-latest  # environnement d'exécution
+    if: ${{ always() && contains(join(needs.test_e2e.result, ','), 'success') }}
+
+    defaults:  # définition des valeurs par défaut pour les étapes
+      run:  # définition des valeurs par défaut pour les étapes run
+        working-directory: client  # définit le dossier de travail par défaut pour les étapes run
+
+    steps:  # les étapes du job
+      - name: code checkout  # récupère le code source
+        uses: actions/checkout@v4
+  
+      - name: Node.js install  # installe Node.js
+        uses: actions/setup-node@v4  # utilise l'action setup-node en version 4
+        with:
+          cache: 'npm'
+          cache-dependency-path: client/package-lock.json  # chemin vers le package-lock.json pour le cache
+  
+      - name: deps install  # installe les dépendances npm
+        run: |
+          npm ci --prefer-offline
+  
+      - name: frontend build  # construit le frontend
+        run: |
+          npm run build
+  
+      - name: create frontend artifacts  # archive le dossier 'dist' pour une utilisation ultérieure
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-dist  # nom de l'artéfact
+          path: client/dist/  # chemin de l'artéfact
+          retention-days: 1  # durée de rétention de l'artéfact
+
   # Job pour le déploiement
   deploy:
     needs: [test_e2e, build_frontend]  # Dépend du job "test_e2e" et "build_frontend"
-    if: ${{ always() && contains(join(needs.*.result, ','), 'success') }}
     runs-on: ubuntu-latest # Exécute sur la dernière version d'Ubuntu
 
     steps:
