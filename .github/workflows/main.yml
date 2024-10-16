@@ -45,7 +45,7 @@ jobs:
         run: |  # Commandes shell à exécuter
           npm ${{ matrix.npm_command }}  # Exécute la commande npm définie dans la matrice
       
-      - name: upload of coverage report of Codecov
+      - name: upload of coverage report to Codecov
         uses: codecov/codecov-action@v4
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
@@ -137,15 +137,17 @@ jobs:
           cache: 'npm'
           cache-dependency-path: server/package-lock.json
   
-      - name: install deps
-        run: |
-          cd server
-          npm ci --prefer-offline
-  
+      - name: install deps frontend
+        run: cd client && npm ci --prefer-offline
+      
+      - name: build frontend for e2e
+        run: cd client && npm run build:e2e
+    
+      - name: install deps backend
+        run: cd server && npm ci --prefer-offline
+
       - name: start backend server
-        run: |
-          cd server
-          node index.js & # Doit ce mettre en arrière plan
+        run: cd server && node index.js & # Doit ce mettre en arrière plan
   
       - name: run cypress e2e tests
         uses: cypress-io/github-action@v6
@@ -156,6 +158,11 @@ jobs:
           wait-on: http://localhost:4173
           wait-on-timeout: 60
           config: baseUrl=http://localhost:4173 
+
+      - name: upload of coverage report to Codecov
+        uses: codecov/codecov-action@v4
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
   # Job pour le déploiement
   deploy:
