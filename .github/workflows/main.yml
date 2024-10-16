@@ -116,9 +116,50 @@ jobs:
           path: client/dist/  # chemin de l'artéfact
           retention-days: 1  # durée de rétention de l'artéfact
 
+  test_e2e:
+    runs-on: ubuntu-latest
+
+    needs: [build_frontend]
+
+    steps:
+      - name: code checkout
+        uses: actions/checkout@v4
+  
+      - name: download frontend artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: frontend-dist
+          path: client/dist/
+  
+      - name: install Node.js
+        uses: actions/setup-node@v4
+        with:
+          cache: 'npm'
+          cache-dependency-path: server/package-lock.json
+  
+      - name: install deps
+        run: |
+          cd server
+          npm ci --prefer-offline
+  
+      - name: start backend server
+        run: |
+          cd server
+          node index.js & # Doit ce mettre en arrière plan
+  
+      - name: run cypress e2e tests
+        uses: cypress-io/github-action@v6
+        with:
+          working-directory: client
+          browser: chrome
+          start: npm run preview
+          wait-on: http://localhost:4173
+          wait-on-timeout: 60
+          config: baseUrl=http://localhost:4173 
+
   # Job pour le déploiement
   deploy:
-    needs: [test_backend, check_frontend, build_frontend]  # Dépend du job "tests"
+    needs: [test_e2e]  # Dépend du job "test_e2e"
     
     runs-on: ubuntu-latest # Exécute sur la dernière version d'Ubuntu
 
